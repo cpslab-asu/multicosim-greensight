@@ -6,6 +6,7 @@ import typing
 
 import attrs
 import numpy as np
+import matplotlib.pyplot as plt
 import multicosim.simulations as _sim
 
 if typing.TYPE_CHECKING:
@@ -14,6 +15,8 @@ if typing.TYPE_CHECKING:
 from ._dronesim2.Simulation.ctrl import Control
 from ._dronesim2.Simulation.trajectory import Trajectory
 from ._dronesim2.Simulation.quadFiles.quad import Quadcopter
+from ._dronesim2.Simulation.utils.animation import sameAxisAnimation
+from ._dronesim2.Simulation.utils.display import makeFigures
 from ._dronesim2.Simulation.utils.windModel import Wind
 
 
@@ -49,9 +52,53 @@ class Simulation(_sim.Simulation):
     motor_values: NDArray[np.float64]
     throttle_values: NDArray[np.float64]
     torque_values: NDArray[np.float64]
+    _quad: Quadcopter
+    _traj: Trajectory
+    _step_size: float
 
     def stop(self):
         pass
+
+    def animate(self, *, save: bool = False):
+        """Create an animation of the states produced by the simulator.
+
+        This function will show the animation as a Matplotlib graph, and can optionally save the
+        animation as a GIF.
+
+        Args:
+            save: Flag to indicate if the animation should be saved to a file
+        """
+
+        makeFigures(
+            self._quad.params,
+            self.times,
+            self.positions,
+            self.velocities,
+            self.quaternions,
+            self.omegas,
+            self.eulers,
+            self.commands,
+            self.motor_values,
+            self.throttle_values,
+            self.torque_values,
+            self.desired_trajectories,
+            self.desired_calcuations,
+        )
+
+        sameAxisAnimation(
+            self.times,
+            self._traj.wps,
+            self.positions,
+            self.quaternions,
+            self.desired_trajectories,
+            self._step_size,
+            self._quad.params,
+            self._traj.xyzType,
+            self._traj.yawType,
+            save,
+        )
+
+        plt.show()
 
 
 def _simulate(t_initial: float, t_final: float, step_size: float) -> Simulation:
