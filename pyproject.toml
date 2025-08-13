@@ -9,10 +9,15 @@ authors = [
     { name = "Quinn Thibeault", email = "quinn.thibeault96@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "multicosim",
+]
 
 [tool.uv.build-backend]
 module-name = "greensight"
+
+[tool.uv.sources]
+multicosim = { git = "https://github.com/cpslab-asu/multicosim", branch = "refactor-protocols" }
 
 [tool.pyright]
 venvPath = "."
