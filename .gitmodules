@@ -1,0 +1,3 @@
+[submodule "dronesim2/DroneSimV2"]
+	path = src/greensight/dronesim2/_dronesim2
+	url = https://github.com/ImpactLabASU/DroneSimV2
