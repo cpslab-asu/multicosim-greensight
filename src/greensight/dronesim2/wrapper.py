@@ -21,6 +21,22 @@ from ._dronesim2.Simulation.utils.windModel import Wind
 
 
 def _step(t: float, step_size: float, quad: Quadcopter, ctrl: Control, wind: Wind, traj: Trajectory) -> float:
+    """Step the simulation at a given time.
+
+    This function updates the models provided as arguments, advancing them to the new time step.
+
+    Args:
+        t: The current time
+        step_size: The amount of time to step for (in seconds)
+        quad: The quadrotor physical model
+        ctrl: The system controller model
+        wind: The physics model of the wind
+        traj: The desired trajectory
+
+    Returns:
+        The next time step
+    """
+
     # Dynamics (using last timestep's commands)
     # ---------------------------
     quad.update(t, step_size, ctrl.w_cmd, wind)
@@ -102,6 +118,17 @@ class Simulation(_sim.Simulation):
 
 
 def _simulate(t_initial: float, t_final: float, step_size: float) -> Simulation:
+    """Simulate a quadrotor from a given time.
+
+    Args:
+        t_initial: The start time for the simulation
+        t_final: The final time for the simulation
+        step_size: The size of the time step for each update
+
+    Returns:
+        The set of system states over the duration of the simulation
+    """
+
     logger = logging.getLogger("greensight.dronesim2")
     logger.addHandler(logging.NullHandler())
 
@@ -217,10 +244,24 @@ def _simulate(t_initial: float, t_final: float, step_size: float) -> Simulation:
         wMotor_all,
         thr_all,
         tor_all,
+        quad,
+        traj,
+        step_size,
     )
 
 
-class DroneSim2(_sim.Simulator[None, Simulation]):
+class Simulator(_sim.Simulator[None, Simulation]):
+    """Simulator implemenation for the DroneSim2 quadrotor simulator.
+
+    The `Simulation` instance returned by the `start` method will contain all of the simulation
+    data produced by a run of the simulator.
+
+    Args:
+        t_initial: The start time for the simulation
+        t_final: The final time for the simulation
+        step_size: The size of the integration step for the simulator
+    """
+
     def __init__(self, t_initial: float = 0.0, t_final: float = 91.4, step_size: float = 0.005):
         self.t_initial = t_initial
         self.t_final = t_final

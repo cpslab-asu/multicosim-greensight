@@ -1,3 +1,3 @@
-from .wrapper import DroneSim2
+from .wrapper import Simulator
 
-__all__ = ["DroneSim2"]
+__all__ = ["Simulator"]
