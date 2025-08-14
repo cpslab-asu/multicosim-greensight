@@ -3,11 +3,21 @@ CasADi quadrotor simulation using low-fidelity controller
 - Low-fidelity quadrotor model
 - Simulation using CasADi
 - Not translated from modelica version (hand-written)
+
+Sourced from: https://github.com/mhcho1994/FIRE_LoFi_Simulations/blob/main/GSdrone/Quadrotor_Controller_FSM.ipynb
+Converted from Jupyter Notebook: Aniruddha Sawant <asawan15@asu.edu>
 """
 
-import numpy as np
+import typing
+
+import attrs
 import casadi as ca
+import multicosim.simulations as _sims
+import numpy as np
 import scipy as sp
+
+if typing.TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 def eul2quat(euler):
@@ -360,9 +370,28 @@ def GS_controller_LoFi():
     return c
 
 
-def simulate(
-    t0, tf, dt, joystick_cmd_hist, gyro_dist_rnd=np.zeros((int((tf - t0) / dt) + 1, 3))
-):
+@attrs.frozen()
+class Simulation(_sims.Simulation):
+    s: NDArray[np.float64]
+    x: NDArray[np.float64]
+    u: NDArray[np.float64]
+    r: NDArray[np.float64]
+    t: NDArray[np.float64]
+
+    def stop(self):
+        pass
+
+
+def _simulate(
+    t0: float,
+    tf: float,
+    dt: float,
+    joystick_cmd_hist,
+    gyro_dist_rnd: NDArray[np.float64] | None = None,
+) -> Simulation:
+    if not gyro_dist_rnd:
+        gyro_dist_rnd = np.zeros((int((tf - t0) / dt) + 1, 3))
+
     # initialize controller state
     s0 = np.array([0, 0, 0, 0, 0, 0, 0, 0])
 
@@ -468,4 +497,16 @@ def simulate(
         )
         sim["x"][idx + 1, :] = int_temp["xf"].full().flatten()
 
-    return sim
+    return Simulation(**sim)
+
+
+@attrs.define(order=False, eq=True)
+class Simulator(_sims.Simulator[None, Simulation]):
+    t0: float = attrs.field()
+    tf: float = attrs.field()
+    dt: float = attrs.field()
+    joystick_cmd_hist: typing.Any = attrs.field()
+    gyro_dist_rnd: typing.Any = attrs.field()
+
+    def start(self) -> Simulation:
+        return _simulate(self.t0, self.tf, self.dt, self.joystick_cmd_hist, self.gyro_dist_rnd)
