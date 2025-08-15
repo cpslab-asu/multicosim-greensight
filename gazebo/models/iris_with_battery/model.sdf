@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<sdf version="1.9">
+  <!-- Derive from base model -->
+  <model name="iris_with_battery">
+    <include>
+      <uri>model://iris_with_ardupilot</uri>
+    </include>
+  </model>
+  
+  <!-- Plugins -->
+  <plugin filename="gz-sim-linearbatteryplugin-system"
+    name="gz::sim::systems::LinearBatteryPlugin">
+    <!--Li-ion battery spec from LIR18650 datasheet-->
+    <battery_name>linear_battery</battery_name>
+    <voltage>4.2</voltage>
+    <open_circuit_voltage_constant_coef>4.2</open_circuit_voltage_constant_coef>
+    <open_circuit_voltage_linear_coef>-2.0</open_circuit_voltage_linear_coef>
+    <initial_charge>2.5</initial_charge>
+    <capacity>2.5 </capacity>
+    <resistance>0.07</resistance>
+    <smooth_current_tau>2.0</smooth_current_tau>
+    <enable_recharge>false</enable_recharge>
+    <charging_time>3.0</charging_time>
+    <soc_threshold>0.51</soc_threshold>
+    <!-- Consumer-specific -->
+    <power_load>2.1</power_load>
+    <start_on_motion>true</start_on_motion>
+  </plugin>
+</sdf>
