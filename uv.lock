@@ -312,7 +312,7 @@ wheels = [
 [[package]]
 name = "multicosim"
 version = "0.2.0"
-source = { git = "https://github.com/cpslab-asu/multicosim?branch=refactor-protocols#52704dd1d0e30e6a7ce222ac2609bc0520312e10" }
+source = { git = "https://github.com/cpslab-asu/multicosim?rev=main#682cc12edec1fa81cab007514174184eaa649c26" }
 dependencies = [
     { name = "attrs" },
     { name = "docker" },
@@ -339,9 +339,9 @@ dependencies = [
 requires-dist = [
     { name = "casadi", specifier = ">=3.7.1" },
     { name = "matplotlib", specifier = ">=3.10.5" },
-    { name = "multicosim", git = "https://github.com/cpslab-asu/multicosim?branch=refactor-protocols" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=2.3.1" },
+    { name = "multicosim", git = "https://github.com/cpslab-asu/multicosim?rev=main" },
     { name = "scipy", specifier = ">=1.16.1" },
 ]
 

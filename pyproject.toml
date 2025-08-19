@@ -22,7 +22,7 @@ dependencies = [
 module-name = "greensight"
 
 [tool.uv.sources]
-multicosim = { git = "https://github.com/cpslab-asu/multicosim", branch = "refactor-protocols" }
+multicosim = { git = "https://github.com/cpslab-asu/multicosim", rev = "main" }
 
 [tool.pyright]
 venvPath = "."
