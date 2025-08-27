@@ -1,3 +1,7 @@
 [submodule "dronesim2/DroneSimV2"]
 	path = src/greensight/_dronesim2
 	url = https://github.com/cpslab-asu/DroneSimLowFid
+
+[submodule "GSDrone"]
+	path = src/greensight/GSDrone_
+	url = https://github.com/mhcho1994/FIRE_LoFi_Simulations
