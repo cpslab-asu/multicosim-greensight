@@ -1,10 +1,19 @@
 target "sitl-gazebo" {
-  context = "./gazebo"
+  context = "./sitl"
+  dockerfile = "gazebo.Dockerfile"
   tags = [
     "ghcr.io/cpslab-asu/multicosim-greensight/sitl/gazebo:harmonic",
   ]
 }
 
+target "sitl-firmware" {
+  context = "./sitl"
+  dockerfile = "firmware.Dockerfile"
+  tags = [
+    "ghcr.io/cpslab-asu/multicosim-greensight/sitl/firmware:0.1.0",
+  ]
+}
+
 group "sitl" {
-  targets = ["sitl-gazebo"]
+  targets = ["sitl-gazebo", "sitl-firmware"]
 }
