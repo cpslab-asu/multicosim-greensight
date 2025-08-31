@@ -31,7 +31,7 @@ class Simulator(_fw.GazeboFirmwareSimulator):
         imu_magnitude = 0.0 if imu_attack is None else imu_attack.magnitude
         imu = _cp.ContainerComponent(
             image=f"ghcr.io/cpslab-asu/multicosim-greensight/sitl/imu:{__version__}",
-            command=f"/usr/local/bin/imu --magnitude {imu_magnitude}",
+            command=f"/usr/local/bin/imu --magnitude {imu_magnitude} --input-topic /imu_original",
         )
 
         super().__init__(_fw.JointGazeboFirmwareComponent(gazebo, firmware))
