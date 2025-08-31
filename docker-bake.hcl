@@ -14,6 +14,18 @@ target "sitl-firmware" {
   ]
 }
 
+target "sitl-imu" {
+  context = "./sitl"
+  dockerfile = "imu.Dockerfile"
+  tags = [
+    "ghcr.io/cpslab-asu/multicosim-greensight/sitl/imu:0.1.0",
+  ]
+}
+
 group "sitl" {
   targets = ["sitl-gazebo", "sitl-firmware"]
+}
+
+group "imu" {
+  targets = ["sitl", "sitl-imu"]
 }
