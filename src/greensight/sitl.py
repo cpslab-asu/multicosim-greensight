@@ -22,7 +22,7 @@ class Simulator(_fw.GazeboFirmwareSimulator):
 
         firmware = _fw.FirmwareConfig(
             image=f"ghcr.io/cpslab-asu/multicosim/ardupilot/firmware:{mcs.__version__}",
-            command="",
+            command=f"/usr/local/bin/firmware listen --port {_ap.PORT}",
             port=_ap.PORT,
             message_type=_ap.Start,
             response_type=_ap.Result,
