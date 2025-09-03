@@ -326,7 +326,7 @@ wheels = [
 [[package]]
 name = "multicosim"
 version = "0.2.0"
-source = { git = "https://github.com/cpslab-asu/multicosim?rev=main#5509d92e34cbf86998d971b89880d8aedddab922" }
+source = { git = "https://github.com/cpslab-asu/multicosim?rev=076d8d904744b0d7fb83638659f05148a88d145c#076d8d904744b0d7fb83638659f05148a88d145c" }
 dependencies = [
     { name = "attrs" },
     { name = "docker" },
@@ -358,7 +358,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.5" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=2.3.1" },
-    { name = "multicosim", git = "https://github.com/cpslab-asu/multicosim?rev=main" },
+    { name = "multicosim", git = "https://github.com/cpslab-asu/multicosim?rev=076d8d904744b0d7fb83638659f05148a88d145c" },
     { name = "psy-taliro", specifier = ">=1.0.0" },
     { name = "scipy", specifier = ">=1.16.1" },
 ]
