@@ -16,6 +16,9 @@ target "sitl-firmware" {
 
 target "sitl-imu" {
   context = "./sitl"
+  contexts = {
+    greensight = "."
+  }
   dockerfile = "imu.Dockerfile"
   tags = [
     "ghcr.io/cpslab-asu/multicosim-greensight/sitl/imu:0.1.0",
