@@ -3,14 +3,27 @@ name = "sitl"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.2.1",
+    "rich>=14.1.0",
+]
 
 [dependency-groups]
 imu = [
-    "click>=8.2.1",
+    "multicosim",
+]
+gcs = [
+    "mavsdk>=3.10.0",
+]
+dev = [
+    "multicosim-greensight",
 ]
 
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[tool.uv.sources]
+multicosim = { git = "https://github.com/cpslab-asu/multicosim", rev = "076d8d904744b0d7fb83638659f05148a88d145c" }
+multicosim-greensight = { path = "../", editable = true }

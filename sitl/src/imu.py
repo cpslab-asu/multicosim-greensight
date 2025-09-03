@@ -1,13 +1,26 @@
+from __future__ import annotations
+
+import logging
+import subprocess
+import sys
+import threading
 import typing
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable
 
 import click
+import greensight.sitl as _sitl
 import gz.transport13 as _ts
-import gz.msgs10.imu as _imu
+import gz.msgs10.imu_pb2 as _imu
+import gz.msgs10.pose_v_pb2 as _pose
+import multicosim.docker.firmware as fw
+import rich.logging
 
-IMU_TOPIC: typing.Final[str] = "/world/greensight_runway/model/greensight_with_ardupilot/model/greensight_with_standoffs/link/imu_link/sensor/imu_sensor/imu"
+IMU_TOPIC: typing.Final[str] = "/world/generated/model/iris_with_gimbal/model/iris_with_standoffs/link/imu_link/sensor/imu_sensor/imu"
+POSE_TOPIC: typing.Final[str] = "/world/generated/pose/info"
+
+logger = logging.getLogger("sitl.imu")
 
 
 def _publish_modified(dst: _ts.Publisher, magnitude: float) -> Callable[[_imu.IMU], None]:
@@ -30,23 +43,86 @@ def _publish_modified(dst: _ts.Publisher, magnitude: float) -> Callable[[_imu.IM
     return _publish
 
 
-@click.command()
-@click.option("-m", "--magnitude", type=float, default=0.0)
-@click.option("-i", "--input-topic", default="/imu_original")
-def imu(magnitude: float, input_topic: str):
+class PositionHandler:
+    def __init__(self, model_name: str):
+        self.positions: list[dict[str, float]] = []
+        self.model_name = model_name
+        self.stop = threading.Event()
+
+    def __call__(self, msg: _pose.Pose_V):
+        if not self.stop.is_set():
+            for pose in msg.pose:
+                if pose.model == self.model_name:
+                    position = {
+                        "t": msg.header.stamp.sec + msg.header.stamp.nsec / 1e9,
+                        "x": pose.position.x,
+                        "y": pose.position.y,
+                        "z": pose.position.z,
+                    }
+
+                    self.positions.append(position)
+
+    def finalize(self) -> list[dict[str, float]]:
+        self.stop.set()
+        return self.positions
+
+
+@fw.firmware(msgtype=_sitl.Start)
+def run(msg: _sitl.Start) -> _sitl.Result:
     # Create gz-transport node
     node = _ts.Node()
 
     # Create publisher to publish modified IMU messages to original topic
     pub = node.advertise(IMU_TOPIC, _imu.IMU)
+    logger.info("Created IMU publisher on topic %s", IMU_TOPIC)
 
     # Subscribe to input topic and call attack function for each message
-    if not node.subscribe(input_topic, _imu.IMU, _publish_modified(pub, magnitude)):
-        raise RuntimeError(f"Could not create subscriber for topic: {input_topic}")
+    if not node.subscribe(_imu.IMU, msg.topic_name,  _publish_modified(pub, msg.imu.magnitude)):
+        raise RuntimeError(f"Could not create subscriber for topic: {msg.topic_name}")
 
-    # Busy loop to wait for shutdown
-    while True:
-        pass
+    logger.info("Created IMU subscriber on topic %s", msg.topic_name)
+
+    # Handler records position data broadcast using gazebo transport
+    pos_handler = PositionHandler(msg.model_name)
+
+    if not node.subscribe(_pose.Pose_V, POSE_TOPIC, pos_handler):
+        raise RuntimeError(f"Could not create subscriber for topic: {POSE_TOPIC}")
+
+    logger.info("Created Pose subscriber on topic %s", POSE_TOPIC)
+
+    # Run GCS program in separate process and wait for completion
+    proc = subprocess.Popen(
+        args=f"/usr/local/bin/gcs --firmware-host {msg.firmware_host} --takeoff-alt 15.0",
+        shell=True,
+        encoding="utf-8",
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+    )
+
+    exit_code = proc.wait()
+
+    if exit_code != 0:
+        logger.error("GCS program terminated with non-zero exit code %d", exit_code)
+
+    # Turn off the handler to prevent additional messages, and return the set of position
+    positions = pos_handler.finalize()
+
+    logger.info("Positions finalized, transmitting results.")
+
+    # Send drone positions back to MultiCoSim
+    return _sitl.Result(positions)
+
+
+@click.command()
+@click.option("-p", "--port", type=int, default=5005)
+def imu(port: int):
+    logging.basicConfig(
+        level=logging.INFO,
+        handlers=[rich.logging.RichHandler()],
+    )
+
+    logger.info("Listening for start message...")
+    run.listen(port)
 
 
 if __name__ == "__main__":
