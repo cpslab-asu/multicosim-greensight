@@ -24,7 +24,7 @@ dependencies = [
 module-name = "greensight"
 
 [tool.uv.sources]
-multicosim = { git = "https://github.com/cpslab-asu/multicosim", rev = "076d8d904744b0d7fb83638659f05148a88d145c" }
+multicosim = { git = "https://github.com/cpslab-asu/multicosim", rev = "c03c7f7b8eaa90298e69b12f7926191fd3824990" }
 
 [tool.pyright]
 venvPath = "."
