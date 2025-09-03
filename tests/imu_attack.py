@@ -1,44 +1,60 @@
+import logging
+import pprint
+
 from click import group
 from staliro import Sample, TestOptions, Trace, models, optimizers, staliro
 from staliro.specifications import rtamt
 
-from greensight import dronesim2, sitl
+from greensight import sitl
 
 
 @models.model()
 def model_hifi(sample: Sample) -> Trace[dict[str, float]]:
     attack = sitl.IMUAttack(magnitude=sample.static["magnitude"])
-    sim = sitl.Simulator(imu_attack=attack)
+    sim = sitl.Simulator()
     sys = sim.start()
-    res = sys.firmware.send()
+    res = sys.imu.send(attack)
     sys.stop()
 
-    raise NotImplementedError()
+    return Trace({
+        pos["t"]: {"alt": pos["z"]} for pos in res.positions
+    })
 
 
+"""
 @models.model()
 def model_lofi(inputs: Sample) -> Trace[dict[str, float]]:
     sim = dronesim2.Simulator()
     res = sim.start()
-    traj = {
-        time: {"alt": state[2]}
-        for time, state in zip(res.times, res.states)
-    }
 
-    return Trace(traj)
+    return Trace({
+        time: {"alt": state[2]} for time, state in zip(res.times, res.states)
+    })
+"""
 
 
 def run(model: models.Model):
     req = "always (alt > 0)"
     spec = rtamt.parse_dense(req)
     opt = optimizers.UniformRandom()
-    opts = TestOptions()
+    opts = TestOptions(
+        runs=1,
+        iterations=10,
+        static_inputs={
+            "magnitude": (0.0, 100.0),
+        },
+    )
     res = staliro(model, spec, opt, opts)
+
+    pprint.pprint(res)
 
 
 @group()
 def imu_attack():
-    pass
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[],
+    )
 
 
 @imu_attack.command()
