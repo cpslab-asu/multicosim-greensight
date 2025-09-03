@@ -1,0 +1,4 @@
+#!/bin/bash
+
+imu_root=/opt/imu
+${imu_root}/.venv/bin/python3 ${imu_root}/imu.py $@

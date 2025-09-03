@@ -1,0 +1,4 @@
+#!/bin/bash
+
+gcs_root=/opt/gcs
+${gcs_root}/.venv/bin/python3 ${gcs_root}/gcs.py $@
