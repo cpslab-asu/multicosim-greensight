@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
+import math
 import time
 import typing
 
 import attrs
 import numpy as np
+import numpy.random as rand
 import matplotlib.pyplot as plt
 import multicosim.simulations as _sim
 
@@ -20,7 +22,25 @@ from ._dronesim2.Simulation.utils.display import makeFigures
 from ._dronesim2.Simulation.utils.windModel import Wind
 
 
-def _step(t: float, step_size: float, quad: Quadcopter, ctrl: Control, wind: Wind, traj: Trajectory) -> float:
+def _add_noise(p: NDArray, snr: float) -> NDArray:
+    """Add Gaussian noise to p with given Signal-Noise-Ratio in dB."""
+
+    signal_power = np.var(p)  # Estimate signal power
+    noise_power = signal_power / math.pow(10, snr / 10)  # Compute noise power
+    noise = rand.normal(0, np.sqrt(noise_power), size=np.shape(p))
+
+    return p + noise
+
+
+def _step(
+    t: float,
+    step_size: float,
+    quad: Quadcopter,
+    ctrl: Control,
+    wind: Wind,
+    traj: Trajectory,
+    snr: float
+) -> float:
     """Step the simulation at a given time.
 
     This function updates the models provided as arguments, advancing them to the new time step.
@@ -32,6 +52,7 @@ def _step(t: float, step_size: float, quad: Quadcopter, ctrl: Control, wind: Win
         ctrl: The system controller model
         wind: The physics model of the wind
         traj: The desired trajectory
+        snr: The Signal-to-Noise ratio for perturbing the system in decibels
 
     Returns:
         The next time step
@@ -45,6 +66,7 @@ def _step(t: float, step_size: float, quad: Quadcopter, ctrl: Control, wind: Win
     # Trajectory for Desired States 
     # ---------------------------
     sDes = traj.desiredState(t, step_size, quad)        
+    traj.sDes = _add_noise(traj.sDes, snr)
 
     # Generate Commands (for next iteration)
     # ---------------------------
@@ -117,13 +139,14 @@ class Simulation(_sim.Simulation):
         plt.show()
 
 
-def _simulate(t_initial: float, t_final: float, step_size: float) -> Simulation:
+def _simulate(t_initial: float, t_final: float, step_size: float, snr: float) -> Simulation:
     """Simulate a quadrotor from a given time.
 
     Args:
         t_initial: The start time for the simulation
         t_final: The final time for the simulation
         step_size: The size of the time step for each update
+        snr: The signal-noise-ratio of the system in dB
 
     Returns:
         The set of system states over the duration of the simulation
@@ -208,7 +231,7 @@ def _simulate(t_initial: float, t_final: float, step_size: float) -> Simulation:
     i = 1
 
     while round(t, 3) < t_final :
-        t = _step(t, step_size, quad, ctrl, wind, traj)
+        t = _step(t, step_size, quad, ctrl, wind, traj, snr)
         t_all[i]             = t
         s_all[i,:]           = quad.state
         pos_all[i,:]         = quad.pos
@@ -260,12 +283,20 @@ class Simulator(_sim.Simulator[None, Simulation]):
         t_initial: The start time for the simulation
         t_final: The final time for the simulation
         step_size: The size of the integration step for the simulator
+        signal_noise_ratio: The measure of how noisy the system should be in dB
     """
 
-    def __init__(self, t_initial: float = 0.0, t_final: float = 91.4, step_size: float = 0.005):
+    def __init__(
+        self,
+        t_initial: float = 0.0,
+        t_final: float = 91.4,
+        step_size: float = 0.005,
+        signal_noise_ratio: float = 0.0,
+    ):
         self.t_initial = t_initial
         self.t_final = t_final
         self.step_size = step_size
+        self.snr = signal_noise_ratio
 
     def start(self) -> Simulation:
-        return _simulate(self.t_initial, self.t_final, self.step_size)
+        return _simulate(self.t_initial, self.t_final, self.step_size, self.snr)
