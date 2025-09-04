@@ -5,7 +5,7 @@ from click import group
 from staliro import Sample, TestOptions, Trace, models, optimizers, staliro
 from staliro.specifications import rtamt
 
-from greensight import sitl
+from greensight import dronesim2, sitl
 
 
 @models.model()
@@ -21,16 +21,14 @@ def model_hifi(sample: Sample) -> Trace[dict[str, float]]:
     })
 
 
-"""
 @models.model()
 def model_lofi(inputs: Sample) -> Trace[dict[str, float]]:
-    sim = dronesim2.Simulator()
+    sim = dronesim2.Simulator(signal_noise_ratio=inputs.static["magnitude"])
     res = sim.start()
 
     return Trace({
         time: {"alt": state[2]} for time, state in zip(res.times, res.states)
     })
-"""
 
 
 def run(model: models.Model):
