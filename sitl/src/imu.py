@@ -108,6 +108,11 @@ def run(msg: _sitl.Start) -> _sitl.Result:
 
     if exit_code != 0:
         logger.error("GCS program terminated with non-zero exit code %d", exit_code)
+    else:
+        logger.info("GCS program terminated. Mission complete.")
+
+    # Enable IMU attack after drone has achieved takeoff altitidue
+    imu_attack_enabled.set()
 
     # Turn off the handler to prevent additional messages, and return the set of position
     positions = pos_handler.finalize()
