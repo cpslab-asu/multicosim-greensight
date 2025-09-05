@@ -7,12 +7,14 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
 WORKDIR /opt/gcs
 
 # Add GCS program metadata to image
-COPY ./pyproject.toml ./uv.lock ./
+COPY ./pyproject.toml ./uv.lock ./mavsdk.patch ./
 
 # Create virtual environment
 RUN --mount=from=ghcr.io/astral-sh/uv:latest,source=/uv,target=/bin/uv \
     uv venv --python python3.10 && \
     uv sync --frozen --no-dev --group gcs
+
+RUN patch .venv/lib/python3.10/site-packages/mavsdk/system.py mavsdk.patch
 
 WORKDIR /opt/imu
 

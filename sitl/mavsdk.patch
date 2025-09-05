@@ -1,0 +1,11 @@
+--- .venv/lib/python3.10/site-packages/mavsdk/system.py.old     2025-09-05 16:25:34.463372005 +0000
++++ .venv/lib/python3.10/site-packages/mavsdk/system.py 2025-09-05 16:25:30.744372003 +0000
+@@ -52,7 +52,7 @@
+
+ class _LoggingThread(threading.Thread):
+     def __init__(self, pipe, logger):
+-        super().__init__()
++        super().__init__(daemon=True)
+         self.pipe = pipe
+         self.logger = logger
+
