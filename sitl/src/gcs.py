@@ -10,9 +10,9 @@ import rich.logging
 logger = logging.getLogger("sitl.gcs")
 
 
-async def mission(firmware_host: str, takeoff_alt: float):
+async def mission(takeoff_alt: float):
     drone = mavsdk.System()
-    address = f"udpin://{firmware_host}:14550"
+    address = "udpin://0.0.0.0:14551"
 
     await drone.connect(address)
     logger.info("Connected to system at %s", address)
@@ -34,16 +34,15 @@ async def mission(firmware_host: str, takeoff_alt: float):
 
 
 @click.command("gcs")
-@click.option("--firmware-host", type=str)
 @click.option("--takeoff-alt", type=float, default=15.0)
-def gcs(firmware_host: str, takeoff_alt: float):
+def gcs(takeoff_alt: float):
     logging.basicConfig(
         level=logging.INFO,
         handlers=[rich.logging.RichHandler()],
     )
     
     logger.info("Starting mission.")
-    asyncio.run(mission(firmware_host, takeoff_alt))
+    asyncio.run(mission(takeoff_alt))
 
 
 if __name__ == "__main__":
