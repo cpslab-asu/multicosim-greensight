@@ -15,6 +15,7 @@ imu = [
 ]
 gcs = [
     "mavsdk>=3.10.0",
+    "pymavlink>=2.4.49",
 ]
 dev = [
     "multicosim-greensight",
@@ -25,5 +26,5 @@ venvPath = "."
 venv = ".venv"
 
 [tool.uv.sources]
-multicosim = { git = "https://github.com/cpslab-asu/multicosim", rev = "076d8d904744b0d7fb83638659f05148a88d145c" }
+multicosim = { git = "https://github.com/cpslab-asu/multicosim", rev = "0198fc0f573365b7ec7838b3a0261e20ae4323f5" }
 multicosim-greensight = { path = "../", editable = true }
