@@ -4,6 +4,7 @@ import logging
 import subprocess
 import sys
 import threading
+import time
 import typing
 
 if typing.TYPE_CHECKING:
@@ -113,6 +114,9 @@ def run(msg: _sitl.Start) -> _sitl.Result:
 
     # Enable IMU attack after drone has achieved takeoff altitidue
     imu_attack_enabled.set()
+
+    # Wait for attack effect
+    time.sleep(10.0)
 
     # Turn off the handler to prevent additional messages, and return the set of position
     positions = pos_handler.finalize()
