@@ -51,11 +51,10 @@ async def mission(takeoff_alt: float):
         else:
             break
 
-    await drone.action.takeoff()
-    logger.info("Drone launched.")
+    async for position in drone.telemetry.position():
+        logger.info("Drone relative altitude: %.4f", position.relative_altitude_m)
 
-    async for altitude in drone.telemetry.altitude():
-        if altitude.altitude_relative_m >= takeoff_alt:
+        if position.relative_altitude_m >= takeoff_alt:
             break
 
     logger.info("Takeoff altitude achieved, shutting down.")
