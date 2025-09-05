@@ -17,7 +17,7 @@ import gz.msgs10.pose_v_pb2 as _pose
 import multicosim.docker.firmware as fw
 import rich.logging
 
-IMU_TOPIC: typing.Final[str] = "/world/generated/model/iris_with_gimbal/model/iris_with_standoffs/link/imu_link/sensor/imu_sensor/imu"
+IMU_TOPIC: typing.Final[str] = "/world/generated/model/iris_with_battery/model/iris_with_ardupilot/model/iris_with_standoffs/link/imu_link/sensor/imu_sensor/imu"
 POSE_TOPIC: typing.Final[str] = "/world/generated/pose/info"
 
 logger = logging.getLogger("sitl.imu")
