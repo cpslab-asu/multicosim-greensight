@@ -298,5 +298,8 @@ class Simulator(_sim.Simulator[None, Simulation]):
         self.step_size = step_size
         self.snr = signal_noise_ratio
 
+    def add(self, component: _sim.Component) -> _sim.NodeId[_sim.Node]:
+        raise NotImplementedError("This simulator does not support adding components")
+
     def start(self) -> Simulation:
         return _simulate(self.t_initial, self.t_final, self.step_size, self.snr)
