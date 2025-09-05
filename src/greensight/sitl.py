@@ -1,13 +1,12 @@
+import time
 import typing
 
 import attrs
 import multicosim.ardupilot as _ap
 import multicosim.simulations as _sims
-import multicosim.docker.component as _cp
 import multicosim.docker.firmware as _fw
-import multicosim.docker .simulation as _sim
-
-from .__about__ import __version__
+import multicosim.docker.gazebo as _gz
+import multicosim.docker.simulation as _sim
 
 PORT: typing.Final[int] = 5005
 
@@ -19,7 +18,6 @@ class IMUAttack:
 
 @attrs.define()
 class Start:
-    firmware_host: str
     model_name: str
     topic_name: str
     imu: IMUAttack
@@ -30,56 +28,100 @@ class Result:
     positions: list[dict[str, float]]
 
 
+@attrs.define()
+class CombinedNode(_ap.ArduPilotGazeboNode):
+    imu: _fw.FirmwareContainerNode
+
+    def stop(self):
+        self.imu.stop()
+        super().stop()
+
+
+@attrs.define()
+class CombinedComponent(_sims.Component[_sim.Environment, CombinedNode]):
+    gazebo: _gz.GazeboContainerComponent
+    firmware: _ap.ArduPilotComponent
+    imu: _fw.FirmwareContainerComponent[Start, Result]
+
+    def start(self, environment: _sim.Environment) -> CombinedNode:
+        gz = self.gazebo.start(environment)
+        time.sleep(2.0)
+
+        imu = self.imu.start(environment)
+        time.sleep(2.0)
+
+        env_ext = _ap.Environment(
+            environment.client, environment.network_name, gz.node.name(), imu.node.name()
+        )
+        ap = self.firmware.start(env_ext)
+
+        return CombinedNode(gz, ap, imu)
+
+
 class IMUNode(_sims.CommunicationNode[IMUAttack | None, Result]):
-    def __init__(
-        self,
-        imu_node: _fw.FirmwareContainerNode[Start, Result],
-        fw_node: _cp.ReporterNode,
-    ):
-        self.imu_node = imu_node
-        self.fw_node = fw_node
+    def __init__(self, node: _fw.FirmwareContainerNode[Start, Result]):
+        self.node = node
 
     def send(self, msg: IMUAttack | None) -> Result:
         msg_ = Start(
-            firmware_host=self.fw_node.name(),
             model_name="iris_with_battery",
             topic_name="/imu_original",
             imu=IMUAttack(0.0) if msg is None else msg,
         )
 
-        return self.imu_node.send(msg_)
+        return self.node.send(msg_)
 
     def stop(self):
-        self.imu_node.stop()
+        self.node.stop()
 
 
-class Simulation(_ap.Simulation):
-    def __init__(
-        self,
-        simulation: _sim.ContainerSimulation,
-        node_id: _sims.NodeId[_ap.ArduPilotGazeboNode],
-        imu_id: _sims.NodeId[_fw.FirmwareContainerNode[Start, Result]],
-    ):
-        super().__init__(simulation, node_id)
-        self.imu_node = self.inner.get(imu_id)
+class Simulation(_sims.Simulation):
+    def __init__(self, simulation: _sim.ContainerSimulation, node_id: _sims.NodeId[CombinedNode]):
+        self.inner = simulation
+        self.node = self.inner.get(node_id)
+
+    @property
+    def gazebo(self) -> _gz.GazeboContainerNode:
+        return self.node.gazebo
+
+    @property
+    def firmware(self) -> _fw.FirmwareContainerNode[_ap.Start, _ap.Result]:
+        return self.node.firmware
 
     @property
     def imu(self) -> IMUNode:
-        return IMUNode(self.imu_node, self.node.firmware.node)
+        return IMUNode(self.node.imu)
+
+    def stop(self):
+        self.inner.stop()
 
 
-class Simulator(_ap.Simulator):
-    def __init__(self):
-        gz = _ap.GazeboOptions(
+class Simulator(_sims.Simulator):
+    def __init__(self, *, remove: bool = False):
+        gazebo = _ap.GazeboOptions(
             image="ghcr.io/cpslab-asu/multicosim-greensight/sitl/gazebo:harmonic",
             world="/app/resources/worlds/iris_battery.sdf",
         )
 
         firmware = _ap.FirmwareOptions(
             image="ghcr.io/cpslab-asu/multicosim-greensight/sitl/firmware:0.1.0",
-            param_files=[
-                "/app/ardupilot-default-config.param"
-            ],
+            # param_files=[
+            #     "/app/ardupilot-default-config.param"
+            # ],
+        )
+
+        gz = _gz.GazeboContainerComponent(
+            image=gazebo.image,
+            template=gazebo.world,
+            remove=remove,
+        )
+
+        fw = _ap.ArduPilotComponent(
+            image=firmware.image,
+            vehicle=firmware.vehicle,
+            frame=firmware.frame,
+            param_files=firmware.param_files,
+            remove=remove,
         )
 
         imu = _fw.FirmwareContainerComponent(
@@ -88,10 +130,13 @@ class Simulator(_ap.Simulator):
             port=PORT,
             message_type=Start,
             response_type=Result,
+            remove=remove,
         )
 
-        super().__init__(gz, firmware)
-        self.imu_id = self.add(imu)
+        comp = CombinedComponent(gz, fw, imu)
+
+        self.simulator = _sim.ContainerSimulator()
+        self.node_id = self.simulator.add(comp)
 
     def start(self) -> Simulation:
-        return Simulation(self.simulator.start(), self.node_id, self.imu_id)
+        return Simulation(self.simulator.start(), self.node_id)
