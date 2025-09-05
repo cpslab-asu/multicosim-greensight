@@ -5,6 +5,7 @@ import logging
 
 import click
 import mavsdk
+import mavsdk.action
 import rich.logging
 
 logger = logging.getLogger("sitl.gcs")
@@ -17,11 +18,38 @@ async def mission(takeoff_alt: float):
     await drone.connect(address)
     logger.info("Connected to system at %s", address)
 
+    async for health in drone.telemetry.health():
+        healthy = all([
+            health.is_local_position_ok,
+            health.is_global_position_ok,
+            health.is_home_position_ok,
+            health.is_armable,
+        ])
+
+        if healthy:
+            break
+
+    logger.info("Drone is ready to arm.")
+
     await drone.action.set_takeoff_altitude(takeoff_alt)
     logger.info("Set takeoff altitude to %f", takeoff_alt)
 
-    await drone.action.arm()
-    logger.info("Drone armed.")
+    takeoff_attempts = 1
+
+    while True:
+        await drone.action.arm()
+        logger.info("Drone armed.")
+
+        try:
+            await drone.action.takeoff()
+            logger.info("Drone launched.")
+        except mavsdk.action.ActionError as e:
+            logger.warning(f"Failed takeoff action with error: {e}")
+            await drone.action.disarm()
+            await asyncio.sleep(2.0 * takeoff_attempts)
+            takeoff_attempts += 1
+        else:
+            break
 
     await drone.action.takeoff()
     logger.info("Drone launched.")
