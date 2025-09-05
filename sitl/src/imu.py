@@ -55,7 +55,7 @@ class PositionHandler:
     def __call__(self, msg: _pose.Pose_V):
         if not self.stop.is_set():
             for pose in msg.pose:
-                if pose.model == self.model_name:
+                if pose.name == self.model_name:
                     position = {
                         "t": msg.header.stamp.sec + msg.header.stamp.nsec / 1e9,
                         "x": pose.position.x,
