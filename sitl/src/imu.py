@@ -97,7 +97,7 @@ def run(msg: _sitl.Start) -> _sitl.Result:
 
     # Run GCS program in separate process and wait for completion
     proc = subprocess.Popen(
-        args=f"/usr/local/bin/gcs --firmware-host {msg.firmware_host} --takeoff-alt 15.0",
+        args="/usr/local/bin/gcs --takeoff-alt 15.0",
         shell=True,
         encoding="utf-8",
         stdout=sys.stdout,
