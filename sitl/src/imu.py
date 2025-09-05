@@ -23,7 +23,7 @@ POSE_TOPIC: typing.Final[str] = "/world/generated/pose/info"
 logger = logging.getLogger("sitl.imu")
 
 
-def _publish_modified(dst: _ts.Publisher, magnitude: float) -> Callable[[_imu.IMU], None]:
+def _publish_modified(dst: _ts.Publisher, magnitude: float, enabled: threading.Event) -> Callable[[_imu.IMU], None]:
     """Create a subscriber callback to modify IMU messages and re-publish.
 
     Args:
@@ -35,9 +35,12 @@ def _publish_modified(dst: _ts.Publisher, magnitude: float) -> Callable[[_imu.IM
     """
 
     def _publish(msg: _imu.IMU):
-        msg.linear_acceleration[0] += magnitude
-        msg.linear_acceleration[1] += magnitude
-        msg.linear_acceleration[2] += magnitude
+        # Apply disturbance only if the attack is enabled
+        if enabled.is_set():
+            msg.linear_acceleration.x += magnitude
+            msg.linear_acceleration.y += magnitude
+            msg.linear_acceleration.z += magnitude
+
         dst.publish(msg)
 
     return _publish
@@ -76,8 +79,10 @@ def run(msg: _sitl.Start) -> _sitl.Result:
     pub = node.advertise(IMU_TOPIC, _imu.IMU)
     logger.info("Created IMU publisher on topic %s", IMU_TOPIC)
 
+    imu_attack_enabled = threading.Event()
+
     # Subscribe to input topic and call attack function for each message
-    if not node.subscribe(_imu.IMU, msg.topic_name,  _publish_modified(pub, msg.imu.magnitude)):
+    if not node.subscribe(_imu.IMU, msg.topic_name,  _publish_modified(pub, msg.imu.magnitude, imu_attack_enabled)):
         raise RuntimeError(f"Could not create subscriber for topic: {msg.topic_name}")
 
     logger.info("Created IMU subscriber on topic %s", msg.topic_name)
