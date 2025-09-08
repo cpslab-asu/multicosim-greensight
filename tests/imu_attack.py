@@ -2,9 +2,9 @@ import logging
 import pprint
 
 from click import group, option
-from pandas import DataFrame
 from plotly import graph_objects as go
 from plotly import subplots
+from rich.logging import RichHandler
 from staliro import Sample, TestOptions, Trace, models, optimizers, staliro
 from staliro.specifications import rtamt
 
@@ -13,7 +13,7 @@ from greensight import dronesim2, sitl
 
 def run_hifi(magnitude: float) -> dict[float, dict[str, float]]:
     attack = sitl.IMUAttack(magnitude)
-    sim = sitl.Simulator()
+    sim = sitl.Simulator(remove=True)
     sys = sim.start()
     res = sys.imu.send(attack)
     sys.stop()
@@ -46,13 +46,15 @@ def model_lofi(inputs: Sample) -> Trace[dict[str, float]]:
 def imu_attack():
     logging.basicConfig(
         level=logging.DEBUG,
-        handlers=[],
+        handlers=[RichHandler()]
     )
 
 
 @imu_attack.command("search")
 @option("-i", "--iterations", type=int, default=10)
 def search(iterations: int):
+    logger = logging.getLogger("greensight.imu_attack")
+
     req = "always (alt > 0)"
     spec = rtamt.parse_dense(req)
     opt = optimizers.UniformRandom()
@@ -65,21 +67,18 @@ def search(iterations: int):
     )
     runs_lofi = staliro(model_lofi, spec, opt, opts)
     evals_lofi = (eval for run in runs_lofi for eval in run.evaluations)
+    magnitude_lofi = [eval.sample.static["magnitude"] for eval in evals_lofi],
+    robustness_lofi = [eval.cost for eval in evals_lofi],
+
     candidates = [eval.sample for eval in evals_lofi if eval.cost <= 0]
+    logger.info("Found %d candidate solutions for High-Fidelity evaluation", size(candidates))
 
-    df_lofi = DataFrame({
-        "magnitude": [eval.sample.static["magnitude"] for eval in evals_lofi],
-        "robustness": [eval.cost for eval in evals_lofi],
-    })
-
-    df_hifi = DataFrame({
-        "magnitude": [s.static["magnitude"] for s in candidates],
-        "robustness": [spec.evaluate(model_hifi.simulate(s).value).value for s in candidates]
-    })
+    magnitude_hifi = [s.static["magnitude"] for s in candidates],
+    robustness_hifi = [spec.evaluate(model_hifi.simulate(s).value).value for s in candidates]
 
     fig = subplots.make_subplots(rows=1, cols=2, subplot_titles=["Low-Fidelity", "High-Fidelity"])
-    fig.add_trace(go.Scatter(df_lofi, x="magnitude", y="robustness"))
-    fig.add_trace(go.Scatter(df_hifi, x="magnitude", y="robustness"))
+    fig.add_trace(go.Scatter(x=magnitude_lofi, y=robustness_lofi))
+    fig.add_trace(go.Scatter(x=magnitude_hifi, y=robustness_hifi))
     fig.show()
 
 

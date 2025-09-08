@@ -23,6 +23,7 @@ tests = [
     "click>=8.2.1",
     "plotly>=6.3.0",
     "psy-taliro>=1.0.0",
+    "rich>=14.1.0",
 ]
 
 [tool.uv.build-backend]
