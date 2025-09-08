@@ -26,5 +26,4 @@ venvPath = "."
 venv = ".venv"
 
 [tool.uv.sources]
-multicosim = { git = "https://github.com/cpslab-asu/multicosim", rev = "0198fc0f573365b7ec7838b3a0261e20ae4323f5" }
 multicosim-greensight = { path = "../", editable = true }
