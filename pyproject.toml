@@ -11,14 +11,18 @@ authors = [
 requires-python = ">=3.10,<3.13"
 dependencies = [
     "casadi>=3.7.1",
-    "click>=8.2.1",
     "matplotlib>=3.10.5",
     "multicosim",
     "openpyxl>=3.1.5",
     "pandas>=2.3.1",
+    "scipy>=1.11.1",
+]
+
+[dependency-groups]
+tests = [
+    "click>=8.2.1",
     "plotly>=6.3.0",
     "psy-taliro>=1.0.0",
-    "scipy>=1.11.1",
 ]
 
 [tool.uv.build-backend]
@@ -30,3 +34,4 @@ multicosim = { git = "https://github.com/cpslab-asu/multicosim", branch = "main"
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
