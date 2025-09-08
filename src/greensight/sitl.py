@@ -134,8 +134,7 @@ class Simulator(_sims.Simulator):
         )
 
         comp = CombinedComponent(gz, fw, imu)
-
-        self.simulator = _sim.ContainerSimulator()
+        self.simulator = _sim.ContainerSimulator(remove_network=remove)
         self.node_id = self.simulator.add(comp)
 
     def start(self) -> Simulation:
