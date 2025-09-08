@@ -45,7 +45,7 @@ def model_lofi(inputs: Sample) -> Trace[dict[str, float]]:
 @group("imu_attack")
 def imu_attack():
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         handlers=[RichHandler()]
     )
 
@@ -71,7 +71,7 @@ def search(iterations: int):
     robustness_lofi = [eval.cost for eval in evals_lofi],
 
     candidates = [eval.sample for eval in evals_lofi if eval.cost <= 0]
-    logger.info("Found %d candidate solutions for High-Fidelity evaluation", size(candidates))
+    logger.info("Found %d candidate solutions for High-Fidelity evaluation", len(candidates))
 
     magnitude_hifi = [s.static["magnitude"] for s in candidates],
     robustness_hifi = [spec.evaluate(model_hifi.simulate(s).value).value for s in candidates]
