@@ -1,4 +1,5 @@
 import logging
+import math
 import pprint
 
 from click import group, option
@@ -65,7 +66,7 @@ def imu_attack():
 def search(budget: int):
     req = "always (alt > 0)"
     spec = rtamt.parse_dense(req)
-    opt = optimizers.DualAnnealing()
+    opt = optimizers.DualAnnealing(min_cost=-math.inf)
     opts = TestOptions(
         runs=1,
         iterations=budget,
