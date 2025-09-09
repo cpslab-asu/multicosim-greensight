@@ -1,0 +1,16 @@
+{
+  "__comment": "unit: -, deg, deg, m, m, m, w, deg, Hz, Hz",
+  "eps_controller": 28,
+  "emi_disturbance": 120,
+  "heading": 90,
+  "width": 0.294,
+  "COM_height": 0.064,
+  "turn_radius": 0.5962,
+  "acoustic_power": 100,
+  "gyro_misalignment": 2,
+  "drive_freq": 15000,
+  "acoustic_freq_range": 5,
+  "speaker_dist": 0.01,
+  "wire_dir": 3,
+  "wire_relative_dist": 0.01
+}
