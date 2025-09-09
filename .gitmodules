@@ -6,6 +6,6 @@
 	path = src/greensight/GSDrone_
 	url = https://github.com/mhcho1994/FIRE_LoFi_Simulations
 
-[submodule "Multicosim"]
+[submodule "low-fid-sim/multicosim"]
 	path = low-fid-sim/multicosim
-	url = https://github.com/cpslab-asu/multicosim
+	url = https://github.com/cpslab-asu/multicosim.git

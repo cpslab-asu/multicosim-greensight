@@ -300,7 +300,7 @@ def eul2quat(eul: np.ndarray) -> np.ndarray:
     if eul.shape[0] != 3:
         raise ValueError('Check the input dimension')
     
-    phi = eul[0]    # roll
+    phi = eul[0]    # roll 
     theta = eul[1]  # pitch  
     psi = eul[2]    # yaw
     
@@ -695,10 +695,10 @@ class DroneComponent(Component[None, DroneNode]):
     parameter_file: str = "drone_specs.json"
     
     # FMU file paths (these should be set to actual FMU file locations)
-    fmu_quadrotor_path: str = "/home/asurite.ad.asu.edu/asawan15/cpslab/multicosim/examples/generated_fmus/GSQuad.Components.Quadrotor.fmu"
-    fmu_controller_path: str = "/home/asurite.ad.asu.edu/asawan15/cpslab/multicosim/examples/generated_fmus/GSQuad.Components.Controller.fmu"
-    fmu_joystick_path: str = "/home/asurite.ad.asu.edu/asawan15/cpslab/multicosim/examples/generated_fmus/GSQuad.Components.Joystick.fmu"
-    fmu_mission_planner_path: str = "/home/asurite.ad.asu.edu/asawan15/cpslab/multicosim/examples/generated_fmus/GSQuad.Components.MissionPlanner.fmu"
+    fmu_quadrotor_path: str = "generated_fmus/GSQuad.Components.Quadrotor.fmu"
+    fmu_controller_path: str = "generated_fmus/GSQuad.Components.Controller.fmu"
+    fmu_joystick_path: str = "generated_fmus/GSQuad.Components.Joystick.fmu"
+    fmu_mission_planner_path: str = "generated_fmus/GSQuad.Components.MissionPlanner.fmu"
 
     @override
     def start(self, environment: None) -> DroneNode:
@@ -965,7 +965,7 @@ def generate_falsification_region_analysis(resolution=10, max_evaluations=100):
     
     # Create figures directory
     import os
-    figures_dir = "examples/figures"
+    figures_dir = "figures"
     os.makedirs(figures_dir, exist_ok=True)
     
     # Define parameter ranges for systematic exploration
@@ -1021,10 +1021,10 @@ def generate_falsification_region_analysis(resolution=10, max_evaluations=100):
                     
                     # Get FMU paths
                     fmu_paths = {
-                        'quadrotor': 'examples/generated_fmus/GSQuad.Components.Quadrotor.fmu',
-                        'controller': 'examples/generated_fmus/GSQuad.Components.Controller.fmu',
-                        'joystick': 'examples/generated_fmus/GSQuad.Components.Joystick.fmu',
-                        'mission_planner': 'examples/generated_fmus/GSQuad.Components.MissionPlanner.fmu'
+                        'quadrotor': 'generated_fmus/GSQuad.Components.Quadrotor.fmu',
+                        'controller': 'generated_fmus/GSQuad.Components.Controller.fmu',
+                        'joystick': 'generated_fmus/GSQuad.Components.Joystick.fmu',
+                        'mission_planner': 'generated_fmus/GSQuad.Components.MissionPlanner.fmu'
                     }
                     
                     # Run simulation directly
