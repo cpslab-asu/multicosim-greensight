@@ -22,8 +22,12 @@ def run_hifi(magnitude: float) -> dict[float, dict[str, float]]:
     res = sys.imu.send(attack)
     sys.stop()
 
+    # Offset the altitude of the drone by 0.1m
+    # The altitude is computed to the origin of the drone's frame of reference, which is at the
+    # center of the model. This offset lets us detect if any of the model's extremities contact
+    # the ground plane.
     return {
-        pos["t"]: {"alt": pos["z"]} for pos in res.positions
+        pos["t"]: {"alt": pos["z"] - 0.1} for pos in res.positions
     }
 
 
@@ -78,11 +82,69 @@ def search(iterations: int):
     logger.info("Found %d candidate solutions for High-Fidelity evaluation", len(candidates))
 
     magnitude_hifi = [s.static["magnitude"] for s in candidates]
-    robustness_hifi = [spec.evaluate(model_hifi.simulate(s).value).value for s in candidates]
+    traces_hifi = [model_hifi.simulate(s).value for s in candidates]
+    robustness_hifi = [spec.evaluate(t).value for t in traces_hifi]
 
-    fig = subplots.make_subplots(rows=1, cols=2, subplot_titles=["Low-Fidelity", "High-Fidelity"])
-    fig.add_trace(go.Scatter(x=magnitude_lofi, y=robustness_lofi, mode="markers"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=magnitude_hifi, y=robustness_hifi, mode="markers"), row=1, col=2)
+    trace_lofi = min(evals_lofi, key=lambda e: e.cost).extra.trace
+    trace_hifi = min(enumerate(traces_hifi), key=lambda e: robustness_hifi[e[0]])[1]
+
+    fig = subplots.make_subplots(
+        rows=2,
+        cols=2,
+        specs=[
+            [{}, {}],
+            [{"colspan": 2}, None],
+        ],
+        subplot_titles=["Low-Fidelity", "High-Fidelity", "Altitude"],
+    )
+
+    fig.update_xaxes(title_text="IMU Attack Magnitude", row=1, col=1)
+    fig.update_yaxes(title_text="Robustness", row=1, col=1)
+    fig.add_trace(
+        go.Scatter(
+            x=magnitude_lofi,
+            y=robustness_lofi,
+            mode="markers",
+            name="Robustness (Low-Fidelity)"
+        ),
+        row=1,
+        col=1,
+    )
+
+    fig.update_xaxes(title_text="IMU Attack Magnitude", row=1, col=2)
+    fig.update_yaxes(title_text="Robustness", row=1, col=2)
+    fig.add_trace(
+        go.Scatter(
+            x=magnitude_hifi,
+            y=robustness_hifi,
+            mode="markers",
+            name="Robustness (High-Fidelity)",
+        ),
+        row=1,
+        col=2,
+    )
+
+    fig.update_xaxes(title_text="Time", row=2, col=1)
+    fig.update_yaxes(title_text="Altitude", row=2, col=1)
+    fig.add_trace(
+        go.Scatter(
+            x=list(trace_lofi.times),
+            y=[s["alt"] for s in trace_lofi.states],
+            name="Altitude (Low-Fidelity)"
+        ),
+        row=2,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=list(trace_hifi.times),
+            y=[s["alt"] for s in trace_hifi.states],
+            name="Altitude (High-Fidelity)",
+        ),
+        row=2,
+        col=1,
+    )
+
     fig.show()
 
 
