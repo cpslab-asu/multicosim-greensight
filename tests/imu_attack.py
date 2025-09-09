@@ -10,8 +10,12 @@ from staliro.specifications import rtamt
 
 from greensight import dronesim2, sitl
 
+logger = logging.getLogger("greensight.imu_attack")
+
 
 def run_hifi(magnitude: float) -> dict[float, dict[str, float]]:
+    logger.info("Evaluating high-fidelity model using IMU attack magnitude: %.4f", magnitude)
+
     attack = sitl.IMUAttack(magnitude)
     sim = sitl.Simulator(remove=True)
     sys = sim.start()
@@ -29,6 +33,8 @@ def model_hifi(inputs: Sample) -> Trace[dict[str, float]]:
 
 
 def run_lofi(magnitude: float) -> dict[float, dict[str, float]]:
+    logger.info("Evaluating low-fidelity model using IMU attack magnitude: %.4f", magnitude)
+
     sim = dronesim2.Simulator(signal_noise_ratio=magnitude)
     res = sim.start()
 
@@ -53,8 +59,6 @@ def imu_attack():
 @imu_attack.command("search")
 @option("-i", "--iterations", type=int, default=10)
 def search(iterations: int):
-    logger = logging.getLogger("greensight.imu_attack")
-
     req = "always (alt > 0)"
     spec = rtamt.parse_dense(req)
     opt = optimizers.UniformRandom()
