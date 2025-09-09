@@ -26,6 +26,9 @@ tests = [
     "rich>=14.1.0",
 ]
 
+[tool.uv]
+default-groups = "all"
+
 [tool.uv.build-backend]
 module-name = "greensight"
 
