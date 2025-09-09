@@ -70,19 +70,19 @@ def search(iterations: int):
         },
     )
     runs_lofi = staliro(model_lofi, spec, opt, opts)
-    evals_lofi = (eval for run in runs_lofi for eval in run.evaluations)
-    magnitude_lofi = [eval.sample.static["magnitude"] for eval in evals_lofi],
-    robustness_lofi = [eval.cost for eval in evals_lofi],
+    evals_lofi = [eval for run in runs_lofi for eval in run.evaluations]
+    magnitude_lofi = [eval.sample.static["magnitude"] for eval in evals_lofi]
+    robustness_lofi = [eval.cost for eval in evals_lofi]
 
     candidates = [eval.sample for eval in evals_lofi if eval.cost <= 0]
     logger.info("Found %d candidate solutions for High-Fidelity evaluation", len(candidates))
 
-    magnitude_hifi = [s.static["magnitude"] for s in candidates],
+    magnitude_hifi = [s.static["magnitude"] for s in candidates]
     robustness_hifi = [spec.evaluate(model_hifi.simulate(s).value).value for s in candidates]
 
     fig = subplots.make_subplots(rows=1, cols=2, subplot_titles=["Low-Fidelity", "High-Fidelity"])
-    fig.add_trace(go.Scatter(x=magnitude_lofi, y=robustness_lofi))
-    fig.add_trace(go.Scatter(x=magnitude_hifi, y=robustness_hifi))
+    fig.add_trace(go.Scatter(x=magnitude_lofi, y=robustness_lofi), row=1, col=1)
+    fig.add_trace(go.Scatter(x=magnitude_hifi, y=robustness_hifi), row=1, col=2)
     fig.show()
 
 
