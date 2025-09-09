@@ -81,8 +81,8 @@ def search(iterations: int):
     robustness_hifi = [spec.evaluate(model_hifi.simulate(s).value).value for s in candidates]
 
     fig = subplots.make_subplots(rows=1, cols=2, subplot_titles=["Low-Fidelity", "High-Fidelity"])
-    fig.add_trace(go.Scatter(x=magnitude_lofi, y=robustness_lofi), row=1, col=1)
-    fig.add_trace(go.Scatter(x=magnitude_hifi, y=robustness_hifi), row=1, col=2)
+    fig.add_trace(go.Scatter(x=magnitude_lofi, y=robustness_lofi, mode="markers"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=magnitude_hifi, y=robustness_hifi, mode="markers"), row=1, col=2)
     fig.show()
 
 
