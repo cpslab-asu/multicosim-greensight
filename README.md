@@ -56,9 +56,9 @@ low-fidelity model can be executed using the `lofi` as shown:
 $ uv run tests/imu_attack.py lofi [--magnitude <FLOAT>]
 ```
 
-The magnitude argument represents the power of the IMU attack, and is 0 by default for an un-attacked
-simulation. The high-fidelity simulation can be executed similarly, replacing the `lofi` sub-command
-with `hifi`:
+The `--magnitude` argument represents the power of the IMU attack, and is 0 by default for an
+un-attacked simulation. The high-fidelity simulation can be executed similarly, replacing the `lofi`
+sub-command with `hifi`:
 
 ```console
 $ uv run tests/imu_attack.py hifi [--magnitude <FLOAT>]
@@ -66,8 +66,15 @@ $ uv run tests/imu_attack.py hifi [--magnitude <FLOAT>]
 
 Finally, an attack search pipeline can be run using the sub-command `search`. This will use the
 low-fidelity model to quickly identify IMU disturbance values that cause the drone to crash,
-which are then simulated again at high-fidelity to verify that a crash occurs. The results of
-the search are output as a set of web-based [Plotly][plotly] charts.
+which are then simulated again at high-fidelity to verify that a crash occurs. The pipeline can be
+run using the command:
+
+```console
+$ uv run tests/imu_attack.py search [-b|--budget <INT>]
+```
+
+The `--budget` argument represents the number of low-fidelity simulations to run. The results of the
+search are output as a set of web-based [Plotly][plotly] charts.
 
 [multicosim]: https://github.com/cpslab-asu/multicosim
 [docker]: https://docker.com
