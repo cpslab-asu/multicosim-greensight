@@ -61,14 +61,14 @@ def imu_attack():
 
 
 @imu_attack.command("search")
-@option("-i", "--iterations", type=int, default=10)
-def search(iterations: int):
+@option("-b", "--budget", type=int, default=10)
+def search(budget: int):
     req = "always (alt > 0)"
     spec = rtamt.parse_dense(req)
-    opt = optimizers.UniformRandom()
+    opt = optimizers.DualAnnealing()
     opts = TestOptions(
         runs=1,
-        iterations=iterations,
+        iterations=budget,
         static_inputs={
             "magnitude": (0.0, 100.0),
         },
